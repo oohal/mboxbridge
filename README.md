@@ -128,8 +128,8 @@ Only one window can be open at once.
 
 		Response:
 			Args 0: API version
-			Args 1-2: read window size as number of blocks
-			Args 3-4: write window size as number of block
+			Args 1-2: default read window size as number of blocks
+			Args 3-4: default write window size as number of block
 			Args 5: Block size as power of two.
 
 
@@ -151,31 +151,26 @@ Only one window can be open at once.
 			Args 0-3: Flash size in bytes
 			Args 4-7: Erase granule in bytes
 
-
-	Command:
-		CREATE_READ_WINDOW
-		Arguments:
-			Args 0-1: Read window offset as number of blocks
-		Respons:
-			Args 0-1: Read window position as number of blocks
-		Notes:
-			Offset is the offset within the flash, always specified
-			  from zero.
-			Position is where flash at the requested offset is mapped
-			  on the LPC bus as viewed from the host.
+			XXX: Why is this in bytes?
 
 
 	Command:
 		CREATE_WRITE_WINDOW
-		ARguments:
-			Args 0-1: Write window offset as number of blocks
+		CREATE_READ_WINDOW
+		Arguments:
+			Args 0-1: Read window offset as number of blocks
+			Args 2-3: Requested read window size in blocks.
 		Response:
-			Args 0-1: Write window position as number of blocks
+			Args 0-1: Start block of this window on the LPC bus
+			Args 2-3: Actual size of the window in blocks.
 		Notes:
-			Offset is the offset within the flash, always specified
-			  from zero.
-			Position is where flash at the requested offset is mapped
-			  on the LPC bus as viewed from the host.
+			The requested window size is only a hint. The response
+			indicates the actual size of the window. The BMC may
+			want to use the requested size to pre-load the remainder
+			of the request.
+
+			The format of the CREATE_{READ,WRITE}_WINDOW commands
+			are identical.
 
 
 	Command:
@@ -186,6 +181,11 @@ Only one window can be open at once.
 		Response:
 			-
 		Notes:
+			The BMC has no method for intercepting writes that occur
+			over the LPC bus. The Host must explicitly notify the
+			where and when a write has occured so that it may flush
+			it to persistence.
+
 			Where within the window is the index of the first dirty
 			block within the window - zero refers to the first block of
 			the mapping.
