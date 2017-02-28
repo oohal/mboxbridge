@@ -177,6 +177,7 @@ Only one window can be open at once.
 		MARK_WRITE_DIRTY
 		Data:
 			Data 0-1: Where within window as number of blocks
+				What the fuck? On what planet is <blocks, bytes> useful?
 			Data 2-5: Number of dirty bytes
 		Response:
 			-
@@ -185,6 +186,11 @@ Only one window can be open at once.
 			over the LPC bus. The Host must explicitly notify the
 			where and when a write has occured so that it may flush
 			it to persistence.
+
+			This command accepts a <bytes, bytes> arguments rather
+			than blocks to allow finer grained handling of writes.
+			The BMC is free to mark entire blocks as dirty in response
+			to this command.
 
 			Where within the window is the index of the first dirty
 			block within the window - zero refers to the first block of
