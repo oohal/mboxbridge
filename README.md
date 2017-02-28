@@ -201,21 +201,14 @@ Only one window can be open at once.
 			backing store.
 
 
-	Command
+	Command:
 		WRITE_FLUSH
 		Data:
-			Data 0-1: Where within window as number of blocks
-			Data 2-5: Number of dirty bytes
+			-
 		Response:
 			-
 		Notes:
-			Where within the window is the index of the first dirty
-			block within the window - zero refers to the first block of
-			the mapping.
-			Number of dirty bytes can be zero, this would result in
-			writing all bytes previously marked as dirty.
-			This command will block untill all dirty bytes have been
-			written to the backing store.
+			Flushes any dirty blocks in the current window.
 
 
 	Command:
