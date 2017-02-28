@@ -159,10 +159,10 @@ Only one window can be open at once.
 		CREATE_READ_WINDOW
 		Arguments:
 			Args 0-1: Read window offset as number of blocks
-			Args 2-3: Requested read window size in blocks.
+			Args 2-3: Requested read window size in blocks. (v2)
 		Response:
 			Args 0-1: Start block of this window on the LPC bus
-			Args 2-3: Actual size of the window in blocks.
+			Args 2-3: Actual size of the window in blocks. (v2)
 		Notes:
 			The requested window size is only a hint. The response
 			indicates the actual size of the window. The BMC may
