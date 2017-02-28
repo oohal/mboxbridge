@@ -210,6 +210,30 @@ Only one window can be open at once.
 		Notes:
 			Flushes any dirty blocks in the current window.
 
+	Command:
+		ERASE (v2 only)
+		Data:
+			0-1: Window block offset
+			2-3: block count
+		Response:
+			-
+		Notes:
+			Some applications assume Flash-like semantics where
+			writes must be preceeded by an erase. This command
+			provides a fast method for erasing blocks so the Host
+			does not have to emulate these semantics over the LPC.
+
+			Additionally marks the blocks as dirty. The BMC may
+			delay doing the actual erase until a FLUSH.
+
+			XXX: Should we nail down this more and force the BMC to
+			     set the contents of an erased block to 0xFFs. I
+			     think that's what pflash expects.
+
+			XXX: How does this interact with the window? Looks like
+			     we're forcing the BMC to do a RMW cycle under the
+			     hood if the write window is not aligned to the
+			     erase granule. That's ok I suppose.
 
 	Command:
 		BMC_EVENT_ACK
