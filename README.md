@@ -16,21 +16,29 @@ limitations under the License.
 The autotools of this requires the autoconf-archive package for your
 system
 
-This is a protocol description using the mailbox registers on
-Aspeed 2400/2500 chips for host to BMC communication. The mailbox
-consists of 16 (8 bit) data registers see Layout for their use.
-Mailbox interrupt enabling, masking and triggering is done using a
-pair of control registers, one accessible by the host the other by the
-BMC. Interrupts can also be raised per write to each data register, for
-BMC and host. Write tiggered interrupts are configured using two 8 bit
-registers where each bit represents a data register and if an
-interrupt should fire on write. Two 8 bit registers are present to act
-as a mask for write triggered interrupts.
+This is a protocol description using the mailbox registers on Aspeed 2400/2500
+chips for managing the LPC Firmware space.
 
-### General use
-Messages usually originate from the host to the BMC. There are special
-cases for a back channel for the BMC to pass new information to the
-host which will be discussed later.
+## Hardware Details
+
+The mailbox consists of 16 (8 bit) data registers (see Layout for their use).
+Mailbox interrupt enabling, masking and triggering is done using a pair of
+control registers, one accessible by the host and the other by the BMC.
+Interrupts can also be raised per write to each data register, for BMC and
+host. Write tiggered interrupts are configured using two 8 bit registers where
+each bit represents a data register and if an interrupt should fire on write.
+Two 8 bit registers are present to act as a mask for write triggered
+interrupts.
+
+## Low Level Protocol Flow
+
+The protocol itself consists of:
+
+	1. Commands sent from the Host to the BMC
+	2. Responses sent from the BMC to the Host
+	3. Asyncronous events raised by the BMC.
+
+## Sending commands (Host -> BMC)
 
 To initiate a request the host must set a command code (see
 Commands) into mailbox data register 0. It is also the hosts
@@ -51,8 +59,8 @@ mailbox data regsiter 13 is a valid response code (see Responses). The
 BMC should then use its control register to generate an interrupt for
 the host to notify it of a response.
 
+## Sending Responses (BMC -> Host)
 
-### BMC to host
 BMC to host communication is also possible for notification of events
 from the BMC. This requires that the host have interrupts enabled on
 mailbox data register 15 (or otherwise poll on bit 7 of mailbox status
@@ -61,6 +69,49 @@ mailbox data register 15 to determine the event code was set by the
 BMC (see BMC Event notifications in Commands for detail). After
 performing the necessary action the host should send a BMC_EVENT_ACK
 message to the BMC with which bit it has actioned.
+
+
+# High Level Protocol Flow
+
+The commands from the Host fall into rougly three categories:
+
+	1. Informational
+	2. Window management
+	3. Write handling
+
+The "window" refers to the part of the LPC FW space that has defined contents.
+The Host cannot make any assumptions about the contents of the FW space outside
+of the window and the Host must not write to a window that has been opened
+for reading. The exact behaviour of accessing outside the window is explictly
+undefined by the protocol to allow some flexibility in how the BMC implements
+the protocol.
+
+The Host opens a window using the ```CREATE_READ_WINDOW''' or
+```CREATE_WRITE_WINDOW''' commands. There is only one window open at a time and
+issuing a ```CREATE_*_WINDOW command''' will forcibly close the existing window
+even if opening the new window fails. The Host specifies the location inside the
+flash that it wishes to access for either reading or writing as a part of the
+command, and may provide a hint indicating how large the window should be.
+However, the BMC is free to ignore this. As a part of the response the BMC
+provides the offset into the FW space where the window begins and the actual
+size of the window.
+
+## Read Handing
+
+This window design allows read window requests to be serviced by exposing
+the entire SPI Flash MMIO range on the LPC FW space. The advantage of the
+window method over directly mapping the entire flash is that it allows us to
+selectively overwrite parts of flash without reprogramming the backing storage.
+This is convnienet 
+
+## Write Handling
+
+Write handling is somewhat more complicated because the BMC has no way to
+determine when the Host has written into the FW space. The Host sends the
+MARK_DIRTY command to notify the BMC which parts of the write window have
+been updated. Once marked the BMC may write the window contents to permernant
+storage (if required) at any time. Alternatively, the Host can force a flush
+with the WRITE_FLUSH command, or by closing the window.
 
 ---
 
