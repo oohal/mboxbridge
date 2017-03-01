@@ -191,8 +191,9 @@ Only one window can be open at once.
 		Response:
 			-
 		Notes:
-			Close active window. Renders the LPC mapping unusable.
-
+			Closes active window. Renders the LPC mapping unusable.
+			If the current window is a write window any dirty data
+			will be flushed.
 
 	Command:
 		GET_FLASH_INFO
@@ -259,7 +260,8 @@ Only one window can be open at once.
 		Response:
 			-
 		Notes:
-			Flushes any dirty blocks in the current window.
+			Flushes any data in the current window that has been
+			marked dirty.
 
 	Command:
 		ERASE (v2 only)
