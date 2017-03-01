@@ -221,6 +221,11 @@ Only one window can be open at once.
 			want to use the requested size to pre-load the remainder
 			of the request.
 
+			The requested window size may be zero. In this case the
+			BMC should use the default size returned by the
+			GET_MBOX_INFO command. This behaviour makes v1 and v2
+			implementations to be compatible.
+
 			The format of the CREATE_{READ,WRITE}_WINDOW commands
 			are identical.
 
